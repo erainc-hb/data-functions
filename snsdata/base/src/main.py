@@ -289,14 +289,23 @@ def _insert_data_to_table(conn, df, table_name):
     print(f"{counter} records inserted.")
 
 
-# def main(event, context):
-def main():
+def main(event, context):
+# def main():
     # i_table_name = 'eng_raw_table'
-    i_table_name = 'jpn_raw_table'
+    i_table_name = 'jpn_raw_table' # 変更
+
+    # 今回のデータをMySQLに追加する
+    target_media_netloc = 'www.bellmare.co.jp' # 変更
+    o_table_name = 'test_jpn_twitter_table' # 変更
 
     conn = _create_connection()
 
     read_df = _read_dataframe_from_mysql(conn=conn, table_name=i_table_name)
+    print('全データ数:', len(read_df))
+
+    read_df = read_df[read_df.url.map(lambda s: target_media_netloc in s)]
+    print(f'{target_media_netloc}:', len(read_df))
+
     target_df = _squeeze_dataframe_by_target_date(df=read_df, days=14)
     print(target_df.shape)
 
@@ -321,8 +330,6 @@ def main():
     df.retweet = df.retweet.map(lambda s: s.replace('万', '0000') if isinstance(s, str) else s)
     df.favorite = df.favorite.map(lambda s: s.replace('万', '0000') if isinstance(s, str) else s)
 
-    # 今回のデータをMySQLに追加する
-    o_table_name = 'test_jpn_twitter_table'
 
     _insert_data_to_table(conn, df, table_name=o_table_name)
 
