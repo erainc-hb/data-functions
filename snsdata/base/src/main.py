@@ -336,5 +336,5 @@ def main(event, context):
     conn.close()
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
