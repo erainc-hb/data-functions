@@ -87,30 +87,14 @@ def _read_dataframe_from_mysql(conn, table_name):
     return df
 
 
-# def _squeeze_dataframe_by_target_date(df, days):
-#     df['date'] = pd.to_datetime(df['date'])
-#     df = df.sort_values(by='date', ascending=False)
-
-#     target_days_ago = datetime.datetime.now(pytz.timezone('Asia/Tokyo')) - datetime.timedelta(days=days)
-#     print(target_days_ago.date())
-
-#     target_df = df[df.date.map(lambda s: target_days_ago.date() <= s)][['title', 'url', 'date']]
-    
-#     print(target_df.shape)
-
-#     return target_df
-
-
 def _squeeze_dataframe_by_target_date(df, days):
     df['date'] = pd.to_datetime(df['date'])
     df = df.sort_values(by='date', ascending=False)
 
     target_days_ago = datetime.datetime.now(pytz.timezone('Asia/Tokyo')) - datetime.timedelta(days=days)
-    print(target_days_ago.date())
+    print('取得日:', target_days_ago.date())
 
-    # target_df = df[df.date.map(lambda s: target_days_ago.date() <= s)][['title', 'url', 'date']]
     target_df = df[df.date.map(lambda s: target_days_ago.date() == s)][['title', 'url', 'date']]
-    
     print(target_df.shape)
 
     return target_df
@@ -141,19 +125,16 @@ def _get_tweet_info(e, article_url, article_title, article_date, is_title_base):
     try:
         reply = spans[0].text if spans[0].text else 0
     except:
-        # logging.info(f"url={article_url} reply={None}")
         reply = None
 
     try:
         retweet = spans[1].text if spans[1].text else 0
     except:
-        # logging.info(f"url={article_url} retweet={None}")
         retweet = None
 
     try:
         favorite = spans[2].text if spans[2].text else 0
     except:
-        # logging.info(f"url={article_url} fav={None}")
         favorite = None
 
     d = {
@@ -252,12 +233,8 @@ def _get_tweet_impression(driver, df, table_name):
             bottom_height = driver.execute_script("return document.body.scrollHeight")
             now_height = 0
 
-            # print('取得した高さ', bottom_height)
-
             while now_height <= bottom_height:
-                # print('現在の高さ : ', now_height)
                 if now_height > 50_000:
-                    # logging.info(f"Break query={query}")
                     print(f"Break query={query}")
                     break
                 articles = driver.find_elements_by_tag_name('article')
@@ -265,15 +242,12 @@ def _get_tweet_impression(driver, df, table_name):
                     d = _get_tweet_info(e, article_title=title, article_url=url, article_date=row.date, is_title_base=is_title_base)
                     if d:
                         info_l.append(d)
-                # print('取得したツイート数の合計：', len(articles))
 
                 now_height += 2500
                 driver.execute_script("window.scrollTo(0, {});".format(now_height))
 
                 sleep(random.choice([2, 2.5, 3]))
                 bottom_height = driver.execute_script("return document.body.scrollHeight")
-                print('取得した高さ : ', bottom_height)
-                # print()
 
                 if bottom_height is None:
                     break
@@ -282,8 +256,6 @@ def _get_tweet_impression(driver, df, table_name):
             print('取得したツイート数：', len(info_l))
             sleep(random.choice([3, 4, 5]))
 
-    print(info_l)
-    print('ツイート数：', len(info_l))
     driver.quit()
 
     return info_l
@@ -319,20 +291,14 @@ def _insert_data_to_table(conn, df, table_name):
 
 # def main(event, context):
 def main():
-    # table_name = "eng_twitter_table"
     # i_table_name = 'eng_raw_table'
     i_table_name = 'jpn_raw_table'
-
-    print('start')
 
     conn = _create_connection()
 
     read_df = _read_dataframe_from_mysql(conn=conn, table_name=i_table_name)
     target_df = _squeeze_dataframe_by_target_date(df=read_df, days=14)
     print(target_df.shape)
-
-    # target_df = target_df.head()
-    print(target_df.date.min(), target_df.date.max())
 
     title_base_df = target_df.copy()
     url_base_df = target_df.copy()
