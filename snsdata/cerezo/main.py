@@ -272,7 +272,7 @@ def _insert_data_to_table(conn, df, table_name):
     data = []
     for d in df.to_dict('records'):
         data.append(
-            (d['reply'], d['favorite'], d['retweet'], d['name'], d['id'], d['tweet_url'], d['date'].strftime("%Y-%m-%d %H:%M:%S"), d['tweet_url'], d['article_title'], d['is_title_base'])
+            (d['reply'], d['favorite'], d['retweet'], d['name'], d['id'], d['tweet_url'], d['date'].strftime("%Y-%m-%d %H:%M:%S"), d['article_url'], d['article_title'], d['is_title_base'])
         )    
     print('追加するデータ：', len(data))
 
