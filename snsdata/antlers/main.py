@@ -309,7 +309,7 @@ def main(event, context):
     target_df = _squeeze_dataframe_by_target_date(df=read_df, days=14)
     print(target_df.shape)
 
-    if not target_df:
+    if not len(target_df):
         return 'No data to be acquired.'
 
     title_base_df = target_df.copy()
